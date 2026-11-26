@@ -1,0 +1,2614 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "E-Commerce V2 API",
+        "description": "RESTful API documentation for an E-Commerce platform built with Node.js, Express.js, MongoDB, and JWT authentication.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:4006/api/v1",
+            "description": "Local development server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Authentication management endpoints"
+        },
+        {
+            "name": "Users",
+            "description": "User management endpoints"
+        },
+        {
+            "name": "Categories",
+            "description": "Product category management endpoints"
+        },
+        {
+            "name": "Products",
+            "description": "Product management endpoints"
+        },
+        {
+            "name": "Orders",
+            "description": "Order & Cart management endpoints"
+        },
+        {
+            "name": "Comments",
+            "description": "Product comment management endpoints"
+        }
+    ],
+    "components": {
+        "schemas": {
+            "securitySchemes": {
+                  "cookieAuth": {
+                    "type": "apiKey",
+                    "in": "cookie",
+                    "name": "access-token",
+                    "description": "JWT access token stored in a cookie for authentication"
+                }
+            }
+        }
+    },
+    "paths": {
+        "/auth/register": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Register a new user",
+                "description": "Register a new user with the provided details, including firstname, lastname, username, email, phone, password and birthDate.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "firstname": {
+                                        "type": "string"
+                                    },
+                                    "lastname": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "birthDate": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "example": {
+                                    "firstname": "John",
+                                    "lastname": "Doe",
+                                    "username": "johndoe",
+                                    "email": "john.doe@example.com",
+                                    "phone": "09151234567",
+                                    "password": "password123",
+                                    "birthDate": "1390/01/01"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "firstname": {
+                                        "type": "string"
+                                    },
+                                    "lastname": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "birthDate": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Signed up successfully."
+                    },
+                    "409": {
+                        "description": "Username or Email or Phone number already exists !"
+                    },
+                    "403": {
+                        "description": "Phone number or email address is banned !"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Login a user",
+                "description": "Login a user with the provided identifier(either is email or phone) and password.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "identifier": "johndoe",
+                                    "password": "password123"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Signed in successfully."
+                    },
+                    "401": {
+                        "description": "Invalid credentials ! (password or identifier is incorrect)"
+                    },
+                    "403": {
+                        "description": "Phone number or email address is banned !"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Logout a user",
+                "description": "Logout a user by clearing the access-token cookie.",
+                "responses": {
+                    "200": {
+                        "description": "Signed out successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }
+            }
+        },
+        "/auth/refresh" : {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Refresh access token",
+                "description": "Refresh the access token using the refresh token stored in the cookie and user's information.",
+                "responses": {
+                    "200": {
+                        "description": "Access token refreshed successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Phone number or email address is banned !"
+                    }
+                }
+            }
+        },
+        "/auth/check": {
+            "get": {
+                "tags": ["Auth"],
+                "summary": "Check if user is logged in",
+                "description": "Check if the user is logged in by verifying the access token stored in the cookie.",
+                "responses": {
+                    "200": {
+                        "description": "User is authenticated."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }
+            }
+        },
+        "/auth/send-verification-code": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Send verification code",
+                "description": "Actual way is that send a verification code to the user's email for account verification, but for testing purposes, the code is displayed in the response and stores in cookie."
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }
+        },
+        "/auth/resend-verification-code": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Resend verification code",
+                "description": "Resend a new verification code to the user's email for account verification, but for testing purposes, the code is displayed in the response and stores in cookie."
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }
+        },
+        "/auth/verify-email": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Verify email",
+                "description": "Verify the user's email using the verification code sent to their email. or in testing purposes, the code is displayed in the response and stores in cookie.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "code": 123456
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Email verified successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "400": {
+                        "description": "Verification code has expired !"
+                    },
+                    "406": {
+                        "description": "Invalid verification code !"
+                    }
+                }
+            }
+        },
+        "/auth/forgot-password": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Forgot password",
+                "description": "Send a password reset code to the user's email or phone number for password reset, but for testing purposes, the code is displayed in the response and stores in cookie.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "identifier": "09151234567 or johndoe@gmail.com"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verification code sent successfully."
+                    },
+                    "401": {
+                        "description": "Invalid credentials !"
+                    },
+                    "403": {
+                        "description": "Phone number or email address is banned !"
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "tags": ["Auth"],
+                "summary": "Reset password",
+                "description": "Reset the user's password using the verification code sent to their email or phone number. or in testing purposes, the code is displayed in the response and stores in cookie.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "identifier": "09151234567 or johndoe@gmail.com",
+                                    "code": 123456,
+                                    "newPassword": "newpassword123"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string"
+                                    },
+                                    "code": {
+                                        "type": "integer"
+                                    },
+                                    "newPassword": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successfully."
+                    },
+                    "400": {
+                        "description": "Verification code has expired !"
+                    },
+                    "401": {
+                        "description": "Missing information, try forgot-password route again !"
+                    },
+                    "403": {
+                        "description": "Phone number or email address is banned !"
+                    },
+                    "406": {
+                        "description": "Invalid verification code !"
+                    }
+                }
+            }
+        },
+        "/auth/change-password": {
+            "patch": {
+                "tags": ["Auth"],
+                "summary": "Change password",
+                "description": "Change the user's password by providing the current password and a new password.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "currentPassword": "currentpassword123",
+                                    "newPassword": "newpassword123"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "currentPassword": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "newPassword": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password got changed successfully."
+                    },
+                    "400": {
+                        "description": "New password must be different from the current password."
+                    },
+                    "401": {
+                        "description": "Login required ! or Incorrect password !"
+                    }
+                }
+            }
+        },
+        "/users/me": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Get current user profile",
+                "description": "Retrieve the profile information of the currently authenticated user.",
+                "responses": {
+                    "200": {
+                        "description": "User profile retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }
+            },
+            "patch": {
+                "tags": ["Users"],
+                "summary": "Update current user profile",
+                "description": "Update the profile information of the currently authenticated user.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "firstname": {
+                                        "type": "string"
+                                    },
+                                    "lastname": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "birthDate": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                }
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "firstname": {
+                                        "type": "string"
+                                    },
+                                    "lastname": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "birthDate": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "avatar": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User profile updated successfully."
+                    },
+                    "400": {
+                        "description": "Invalid input data."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Users"],
+                "summary": "Remove account",
+                "description": "Delete the account of the currently authenticated user.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "password": "currentpassword123"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Account removed successfully."
+                    },
+                    "400": {
+                        "description": "Password is required to remove the account."
+                    },
+                    "401": {
+                        "description": "Login required ! or Incorrect password !"
+                    },
+                    "404": {
+                        "description": "User not found."
+                    }
+                }
+            }
+        },
+        "/users/calculate-age": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Calculate age from birth date",
+                "description": "Calculate the age of the user based on the provided birth date.",
+                "responses": {
+                    "200": {
+                        "description": "Age calculated successfully."
+                    },
+                    "400": {
+                        "description": "birthDate hasn't been set yet !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }
+            }    
+        },
+        "/users/addresses": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Get user addresses",
+                "description": "Retrieve the list of addresses associated with the currently authenticated user.",
+                "responses": {
+                    "200": {
+                        "description": "User addresses retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }
+            },
+            "post": {
+                "tags": ["Users"],
+                "summary": "Add a new address",
+                "description": "Add a new address to the list of addresses associated with the currently authenticated user.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "title": "Home",
+                                    "receiver": "John Doe",
+                                    "province": "Khorasan Razavi",
+                                    "city": "Mashhad",
+                                    "street": "Hore Aemli 69",
+                                    "postalCode": "4346647312",
+                                    "phone": "09123456789"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "receiver": {
+                                        "type": "string"
+                                    },
+                                    "province": {
+                                        "type": "string"
+                                    },
+                                    "city": {
+                                        "type": "string"
+                                    },
+                                    "street": {
+                                        "type": "string"
+                                    },
+                                    "postalCode": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Address added successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    }
+                }    
+            }
+        },
+        "/users/addresses/{id}": {
+            "patch": {
+                "tags": ["Users"],
+                "summary": "Update an address",
+                "description": "Update the details of an existing address associated with the currently authenticated user.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the address to update",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "title": "Work",
+                                    "receiver": "John Doe",
+                                    "province": "Khorasan Razavi",
+                                    "city": "Mashhad",
+                                    "street": "Work Street 123",
+                                    "postalCode": "4346647312",
+                                    "phone": "09123456789"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded":{
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "receiver": {
+                                        "type": "string"
+                                    },
+                                    "province": {
+                                        "type": "string"
+                                    },
+                                    "city": {
+                                        "type": "string"
+                                    },
+                                    "street": {
+                                        "type": "string"
+                                    },
+                                    "postalCode": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Address updated successfully."
+                    },
+                    "400": {
+                        "description": "Please provide at least one field to update. or Invalid address Id !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "Address not found."
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Users"],
+                "summary": "Delete an address",
+                "description": "Delete an existing address associated with the currently authenticated user.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the address to delete",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Address removed successfully."
+                    },
+                    "400": {
+                        "description": "Invalid address Id !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "Address not found."
+                    }
+                }
+            }
+        },
+        "/users/wishlist": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Get user wishlist",
+                "description": "Retrieve the list of products in the wishlist of the currently authenticated user.",
+                "responses": {
+                    "200": {
+                        "description": "User wishlist retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No product found in wishlist !"
+                    }
+                }
+            }
+        },
+        "/users/wishlist/{productSlug}": {
+            "post": {
+                "tags": ["Users"],
+                "summary": "Add a product to wishlist",
+                "description": "Add a product to the wishlist of the currently authenticated user.",
+                "parameters": [
+                    {
+                        "name": "productSlug",
+                        "in": "path",
+                        "required": true,
+                        "description": "Slug of the product to add to wishlist",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product added to wishlist successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No product found with this slug !"
+                    },
+                    "409": {
+                        "description": "Product is already in wishlist !"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Users"],
+                "summary": "Remove a product from wishlist",
+                "description": "Remove a product from the wishlist of the currently authenticated user.",
+                "parameters": [
+                    {
+                        "name": "productSlug",
+                        "in": "path",
+                        "required": true,
+                        "description": "Slug of the product to remove from wishlist",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product removed from wishlist successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No product found with this slug ! or Product not found in wishlist."
+                    }
+                }
+            }
+        },
+        "/users/": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Get all users <ADMIN>",
+                "description": "Retrieve a list of all users in the system. This endpoint is intended for administrative purposes and may require appropriate permissions.",
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "tags": ["Users"],
+                "summary": "Get user by ID <ADMIN>",
+                "description": "Retrieve the profile information of a specific user by their ID. This endpoint is intended for administrative purposes and may require appropriate permissions.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the user to retrieve",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No user found with this Id !"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Users"],
+                "summary": "Delete user by ID <ADMIN>",
+                "description": "Delete a specific user by their ID. This endpoint is intended for administrative purposes and may require appropriate permissions.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the user to delete",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User removed successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No user found with this Id !"
+                    }
+                }
+            }
+        },
+        "/users/{id}/block": {
+            "patch": {
+                "tags": ["Users"],
+                "summary": "Block user by ID <ADMIN>",
+                "description": "Block a specific user by their ID. This endpoint is intended for administrative purposes and may require appropriate permissions.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the user to block",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User blocked successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No user found with this Id !"
+                    }
+                }
+            }
+        },
+        "/users/{id}/unblock": {
+            "patch": {
+                "tags": ["Users"],
+                "summary": "Unblock user by ID <ADMIN>",
+                "description": "Unblock a specific user by their ID. This endpoint is intended for administrative purposes and may require appropriate permissions.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the user to unblock",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User unblocked successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No user found with this Id !"
+                    }
+                }
+            }
+        },
+        "/users/{id}/ban": {
+            "post": {
+                "tags": ["Users"],
+                "summary": "Ban user by ID <ADMIN>",
+                "description": "Ban a specific user by their ID. This endpoint is intended for administrative purposes and may require appropriate permissions.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the user to ban",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User banned successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No user found with this Id !"
+                    },
+                    "409": {
+                        "description": "User has already been banned !"
+                    }
+                }
+            }
+        },
+        "/users/{id}/unban": {
+            "delete": {
+                "tags": ["Users"],
+                "summary": "Unban user by ID <ADMIN>",
+                "description": "Unban a specific user by their ID. This endpoint is intended for administrative purposes and may require appropriate permissions.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the user to unban",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User unbanned successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No user found with this Id ! or User is not ban !"
+                    }
+                }
+            }
+        },
+        "/categories/": {
+            "get": {
+                "tags": ["Categories"],
+                "summary": "Get all categories",
+                "description": "Retrieve a list of all categories in the system.",
+                "responses": {
+                    "200": {
+                        "description": "Categories retrieved successfully."
+                    }
+                }
+            },
+            "post": {
+                "tags": ["Categories"],
+                "summary": "Create a category <ADMIN>",
+                "description": "Create a category for the system. this endpoit only allowed by admins",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "icon": {
+                                        "type":"string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Category created successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "409": {
+                        "description": "Category with this slug already exists !"
+                    }
+                }
+            }
+        },
+        "/categories/{id}": {
+            "get": {
+                "tags": ["Categories"],
+                "summary": "Get one by id",
+                "description": "Get a category by its Id, this shows the category's info and icon",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the catgory to show info",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category retrieved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "404": {
+                        "description": "Category not found !"
+                    }
+                }
+            },
+            "patch": {
+                "tags": ["Categories"],
+                "summary": "Update a category <ADMIN>",
+                "description": "Update a category info and icon, this endpoint only allows admins.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "title": "Mobile Accessories",
+                                    "isActive": false
+                                }
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "isActive": {
+                                        "type": "boolean"
+                                    },
+                                    "icon": {
+                                        "type":"string",
+                                        "format": "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the catgory to update",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category updated successfully."
+                    },
+                    "400": {
+                        "description": "Please provide at least one field to update. or Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "Category not found !"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Categories"],
+                "summary": "Remove a category <ADMIN>",
+                "description": "Remove a category from system, only allowed by admins.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the catgory to remove",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category removed successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "Category not found !"
+                    }
+                }
+            }
+        },
+        "/products/": {
+            "get": {
+                "tags": ["Products"],
+                "summary": "Get all products",
+                "description": "Show all products in system",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort order",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": ["latest", "oldest"],
+                            "default": "latest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Products retrieved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid sort [latest | oldest]"
+                    }
+                }
+            },
+            "post": {
+                "tags": ["Products"],
+                "summary": "Create a product <ADMIN>",
+                "description": "Add a new product to system, only allowed by admins",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "stock": {
+                                        "type": "integer"
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "format": "objecid"
+                                    },
+                                    "totalPrice": {
+                                        "type": "number"
+                                    },
+                                    "discount": {
+                                        "type": "number"
+                                    },
+                                    "tags": {
+                                        "type": "string",
+                                        "description": "Comma-separated list of tags",
+                                        "example": "a,b,c,d"
+                                    },
+                                    "covers": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string",
+                                          "format": "binary"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Product created successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No category found with this Id !"
+                    },
+                    "409": {
+                        "description": "Product with this slug already exists !"
+                    }
+                }
+            }
+        },
+        "/products/discounted": {
+            "get": {
+                "tags": ["Products"],
+                "summary": "Get discounted products",
+                "description": "Show all discounted products",
+                "responses": {
+                    "200": {
+                        "description": "Discounted products retrieved successfully."
+                    },
+                    "404": {
+                        "description": "No discounted product was found !"
+                    }
+                }
+            }
+        },
+        "/products/search": {
+            "get": {
+                "tags": ["Products"],
+                "summary": "Search on products",
+                "description": "Search and get products by the result of query sent.",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Result retrieved successfully."
+                    },
+                    "404": {
+                        "description": "No results !"
+                    }
+                }
+            }
+        },
+        "/products/{id}": {
+            "get": {
+                "tags": ["Products"],
+                "summary": "Get a product",
+                "description": "Show a product by its ID, containing its title, slug, stock, price and etc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to retrieve",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product retrieved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    }
+                }
+            },
+            "patch": {
+                "tags": ["Products"],
+                "summary": "Update a product <ADMIN>",
+                "description": "Update a product info and covers, this endpoint only allows admins.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to update",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "title": "ASUS ROG Strix G16",
+                                    "slug": "asus-rog-strix-g16",
+                                    "description": "Gaming laptop featuring Intel Core i9 processor, RTX graphics, and a 165Hz display.",
+                                    "stock": 12,
+                                    "category": "6a637948585174e3badd2bf5",
+                                    "totalPrice": 2200,
+                                    "discount": 15,
+                                    "isActive": false,
+                                    "tags": "asus,laptop,gaming"
+                                }
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema" : {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "slug": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "stock": {
+                                        "type": "integer"
+                                    },
+                                    "category": {
+                                        "type": "string"
+                                    },
+                                    "totalPrice": {
+                                        "type": "integer"
+                                    },
+                                    "discount": {
+                                        "type": "integer"
+                                    },
+                                    "isActive": {
+                                        "type": "boolean"
+                                    },
+                                    "tags": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Product updated successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId ! or Please provide at least one field to update."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Products"],
+                "summary": "Remove a product <ADMIN>",
+                "description": "Remove a category by its ID, only allowed by admins.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to remove",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product removed successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    }
+                }
+            }
+        },
+        "/products/{id}/discount": {
+            "patch": {
+                "tags": ["Products"],
+                "summary": "Apply discount on product <ADMIN>",
+                "description": "Apply discount to product to system, only allowed by admins",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to apply discount",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "discount": 35
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "discount": {
+                                        "type": "integer",
+                                        "description": "[0 to 100]"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Discount applied on product successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    }
+                    
+                }
+            }
+        },
+        "/products/{id}/discount/remove": {
+            "patch": {
+                "tags": ["Products"],
+                "summary": "Remove discount on product <ADMIN>",
+                "description": "Remove discount on product to system, only allowed by admins",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to remove discount",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Discount removed successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    }
+                    
+                }
+            }
+        },
+        "/products/{id}/stock": {
+            "patch": {
+                "tags": ["Products"],
+                "summary": "Update product's stock <ADMIN>",
+                "description": "Update product's stock, only allowed by admin",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to update stock",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "action": "increase",
+                                    "amount": 16
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string",
+                                        "enum": ["increase", "decrease"]
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Stock updated successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId ! or Invalid number, is greater than stock or Invalid action !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    }
+                    
+                }
+            }
+        },
+        "/products/{id}/price": {
+            "patch": {
+                "tags": ["Products"],
+                "summary": "Update product's price <ADMIN>",
+                "description": "Update product's price, only allowed by admin",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to update price",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "totalPrice": 1750
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "totalPrice": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Price updated successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    }
+                    
+                }
+            }
+        },
+        "/products/category/{slug}": {
+            "get": {
+                "tags": ["Products"],
+                "summary": "Get by category slug",
+                "description": "Show all products with the given categort slug",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "description": "Slug of category to retrive products",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Products in Mobile category (for example) retrieved successfully."
+                    },
+                    "404": {
+                        "description": "No category found with this slug ! or No product was found in this category !"
+                    }
+                }
+            }
+        },
+        "/orders/cart": {
+            "get": {
+                "tags": ["Orders"],
+                "summary": "Get user cart",
+                "description": "Show current user cart, authentication needed",
+                "responses": {
+                    "200": {
+                        "description": "Cart items retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "Cart is empty !"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Orders"],
+                "summary": "Empty cart",
+                "description": "Empty current user's cart, authentication needed.",
+                "responses": {
+                    "200": {
+                        "description": "Cart got empty successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "409": {
+                        "description": "Cart is already empty !"
+                    }
+                }
+            }
+        },
+        "/orders/cart/{productId}": {
+            "post": {
+                "tags": ["Orders"],
+                "summary": "Add product to cart",
+                "description": "Add a product to cart by its ID.",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to add to cart",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "quantity": "2"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "quantity": {
+                                        "type": "integer",
+                                        "default": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Product added to cart successfully."
+                    },
+                    "201": {
+                        "description": "Product added to cart successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId ! or Product is not active ! or Invalid quantity, product stock is 2 (for example) more left !"
+                    }, 
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    },
+                    "409": {
+                        "description": "Out of stock !"
+                    }
+                }
+            },
+            "patch": {
+                "tags": ["Orders"],
+                "summary": "Change quantity of product",
+                "description": "Change quantity of product in cart by current user",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product in cart to update",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "action": "increase",
+                                    "amount": 1
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "action": {
+                                        "type": "string",
+                                        "enum": ["increase", "decrease"]
+                                    },
+                                    "amount": {
+                                        "type": "integer",
+                                        "default": 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Product quantity increased successfully. | Cart got empty successfully. | Product got removed from cart successfully. | Product quantity decreased successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId ! | Invalid quantity, product stock is 2 (for example) more left ! | Invalid action !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No product found with this ID ! | This product is not in user's cart !"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Orders"],
+                "summary": "Remove product from cart",
+                "description": "Remove a product from current user's cart",
+                "parameters": [
+                    {
+                        "name": "productId",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product in cart to remove",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product removed from cart successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No product found with this ID ! | Product is not in user's cart !"
+                    }
+                }
+            }
+
+        },
+        "/orders/admin/": {
+            "get": {
+                "tags": ["Orders"],
+                "summary": "Get all orders <ADMIN>",
+                "description": "Show all orders in system, only allowed for admin",
+                "responses": {
+                    "200": {
+                        "description": "Orders retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No available order was found !"
+                    }
+                }
+            }
+        },
+        "/orders/{id}/admin": {
+            "get": {
+                "tags": ["Orders"],
+                "summary": "Get one order <ADMIN>",
+                "description": "Show one order by ID to admin",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the order admin need to retrive",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order retrieved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No order was found with this Id !"
+                    }
+                }
+            }
+        },
+        "/orders/{id}/status":  {
+            "patch": {
+                "tags": ["Orders"],
+                "summary": "Update order status <ADMIN>",
+                "description": "Update an order status, only allowed by admin",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the order to update state",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "status": "SHIPPED"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order status updated successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId ! | Order has been cancelled ! | Order hasn't been paid yet !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No order was found with this Id !"
+                    }
+                }
+            }
+        },
+        "/orders/": {
+            "get": {
+                "tags": ["Orders"],
+                "summary": "Get user orders",
+                "description": "Show all current user's orders",
+                "responses": {
+                    "200": {
+                        "description": "Orders retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No available order was found !"
+                    }
+                }
+            },
+            "post": {
+                "tags": ["Orders"],
+                "summary": "Create an order",
+                "description": "Create an order by the items stored in cart for current user",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "addressTitle": "Home"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "addressTitle": {
+                                        "type": "string",
+                                        "enum": ["Home", "Work", "Other"]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order updated successfully."
+                    },
+                    "201": {
+                        "description": "Order created successfully"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "User cart is empty ! | No address found with this title !"
+                    },
+                    "409": {
+                        "description": "An order for these items already exists !"
+                    }
+                }
+            }
+        },
+        "/orders/{id}": {
+            "get": {
+                "tags": ["Orders"],
+                "summary": "Get an order",
+                "description": "Show an order of current user by its ID",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the order current user want to retrieve",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order retrieved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No order was found with this Id !"
+                    }
+                }
+            }
+        },
+        "/orders/{id}/cancel": {
+            "patch": {
+                "tags": ["Orders"],
+                "summary": "Cancel an order",
+                "description": "Cancel an order of current user by its ID",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the order to cancel by current user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order got cancelled successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "User not allowed ! | Order can not be cancelled !"
+                    },
+                    "404": {
+                        "description": "No order was found with this Id !"
+                    },
+                    "409": {
+                        "description": "Order already been cancelled !"
+                    }
+                }
+            }
+        },
+        "/orders/{id}/pay": {
+            "patch": {
+                "tags": ["Orders"],
+                "summary": "Pay an order",
+                "description": "Pay an order of current user by its ID",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the order to pay by current user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Order got paid successfully."
+                    },
+                    "400": {
+                        "description": "Invalid objectId ! | Order has been cancelled !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "User not allowed !"
+                    },
+                    "404": {
+                        "description": "No order was found with this Id !"
+                    },
+                    "409": {
+                        "description": "Order already been paid !"
+                    }
+                }
+            }
+        },
+        "/comments/": {
+            "get": {
+                "tags": ["Comments"],
+                "summary": "Get all comments <ADMIN>",
+                "description": "Show all system comments, only reachable by admin",
+                "responses": {
+                    "200": {
+                        "description": "Comments retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No comments found !"
+                    }
+                }
+            },
+            "post": {
+                "tags": ["Comments"],
+                "summary": "Add a comment",
+                "description": "Add a comment for one of products in system",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "productId": "6a6655b86add24647e0e94b8",
+                                    "content": "Very helpful product",
+                                    "rating": 5
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "productId": {
+                                        "type": "string",
+                                        "format": "objecid"
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "description": "Comment text"
+                                    },
+                                    "rating": {
+                                        "type": "integer",
+                                        "enum": [1,2,3,4,5]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Comment created successfully."
+                    },
+                    "400": {
+                        "description": "Invalid product ID !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No product found with this ID !"
+                    }
+                }
+            }
+        },
+        "/comments/{id}": {
+            "get": {
+                "tags": ["Comments"],
+                "summary": "Get a comment",
+                "description": "Show a comment of the current user.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the comment to retrive",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment retrieved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid comment ID !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "User not allowed !"
+                    },
+                    "404": {
+                        "description": "No comment found with this Id !"
+                    }
+                }
+            },
+            "patch": {
+                "tags": ["Comments"],
+                "summary": "Update a comment",
+                "description": "Update a comment rating or content by the current user.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the comment to update",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "content": "Very helpful product",
+                                    "rating": 4
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "description": "Comment text"
+                                    },
+                                    "rating": {
+                                        "type": "integer",
+                                        "enum": [1,2,3,4,5]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Comment updated successfully."
+                    },
+                    "400": {
+                        "description": "Invalid comment ID !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "User not allowed to update comment !"
+                    },
+                    "404": {
+                        "description": "No comment found with this Id !"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Comments"],
+                "summary": "Remove a comment",
+                "description": "Remove a comment of current user",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the comment to remove",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment removed successfully."
+                    },
+                    "400": {
+                        "description": "Invalid comment ID !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "User not allowed to remove comment !"
+                    },
+                    "404": {
+                        "description": "No comment found with this Id !"
+                    }
+                }
+            }
+        },
+        "/comments/user": {
+            "get": {
+                "tags": ["Comments"],
+                "summary": "Get all user commments",
+                "description": "Show all of current user's comments",
+                "responses": {
+                    "200": {
+                        "description": "User comments retrieved successfully."
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "User has no comments !"
+                    }
+                }
+            }
+        },
+        "/comments/product/{id}": {
+            "get": {
+                "tags": ["Comments"],
+                "summary": "Get all product comments",
+                "description": "Show all product comments",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the product to show all of its comments",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product comments retrieved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid product ID !"
+                    },
+                    "404": {
+                        "description": "No comments found for this product !"
+                    }
+                }
+            }
+        },
+        "/comments/{id}/approve": {
+            "patch": {
+                "tags": ["Comments"],
+                "summary": "Approve a commment <ADMIN>",
+                "description": "Approve a comment, only allowed by admin",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the comment to approve",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment got approved successfully."
+                    },
+                    "400": {
+                        "description": "Invalid comment ID !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "403": {
+                        "description": "Access denied ! Admin privileges required."
+                    },
+                    "404": {
+                        "description": "No comment found with this Id !"
+                    }
+                }
+            }
+        },
+        "/comments/{id}/reply": {
+            "post": {
+                "tags": ["Comments"],
+                "summary": "Reply to a comment",
+                "description": "Reply to an existing comment in system",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "ID of the comment to reply",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "example": {
+                                    "content": "Thank you for your purchase"
+                                }
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "type": "string",
+                                        "description": "Comment text"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Replied to comment successfully."
+                    },
+                    "400": {
+                        "description": "Invalid comment ID !"
+                    },
+                    "401": {
+                        "description": "Login required !"
+                    },
+                    "404": {
+                        "description": "No comment found with this Id !"
+                    }
+                }
+            }
+        }
+    }
+}
